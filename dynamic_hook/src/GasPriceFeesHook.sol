@@ -26,7 +26,7 @@ contract GasPriceFeesHook is BaseHook {
 
     error MustUseDynamicFees();
 
-    function getHookPermisssions()
+    function getHookPermissions()
         public
         pure
         override
@@ -51,29 +51,29 @@ contract GasPriceFeesHook is BaseHook {
             });
     }
 
-    function beforeInitialize(
+    function _beforeInitialize(
         address,
         PoolKey calldata key,
         uint160
-    ) external pure override returns (bytes4) {
+    ) internal pure override returns (bytes4) {
         if (!key.fee.isDynamicFee()) revert MustUseDynamicFees();
         return this.beforeInitialize.selector;
     }
 
-    function beforeSwap(
+    function _beforeSwap(
         address,
         PoolKey calldata,
         IPoolManager.SwapParams calldata,
         bytes calldata
     )
-        external
+        internal
         view
         override
         onlyPoolManager
-        returns (bytes4, BeforeSwapDelta, uint124)
+        returns (bytes4, BeforeSwapDelta, uint24)
     {
-        uint124 fee = getFee();
-        uin124 feeWithFlag = fee | LPFeeLibrary.OVERRIDE_FEE_FLAG;
+        uint24 fee = getFee();
+        uint24 feeWithFlag = fee | LPFeeLibrary.OVERRIDE_FEE_FLAG;
         return (
             this.beforeSwap.selector,
             BeforeSwapDeltaLibrary.ZERO_DELTA,
@@ -81,19 +81,19 @@ contract GasPriceFeesHook is BaseHook {
         );
     }
 
-    function afterSwap(
+    function _afterSwap(
         address,
         PoolKey calldata,
         IPoolManager.SwapParams calldata,
         BalanceDelta,
         bytes calldata
-    ) external override onlyPoolManager returns (bytes4, int128) {
+    ) internal override onlyPoolManager returns (bytes4, int128) {
         updateMovingAverageGasPrice();
         return (this.afterSwap.selector, 0);
     }
 
-    function getFee() internal view returns (uin124) {
-        uin128 gasPrice = uint128(tx.gasprice);
+    function getFee() internal view returns (uint24) {
+        uint128 gasPrice = uint128(tx.gasprice);
         if (gasPrice > (movingAverageGasPrice * 11) / 10) {
             return BASE_FEES / 2;
         }
@@ -104,7 +104,7 @@ contract GasPriceFeesHook is BaseHook {
     }
 
     function updateMovingAverageGasPrice() internal {
-        uint128 gasPrice = uin128(tx.gasprice);
+        uint128 gasPrice = uint128(tx.gasprice);
         movingAverageGasPrice =
             (movingAverageGasPrice * movingAverageGasPriceCount + gasPrice) /
             (movingAverageGasPriceCount + 1);
