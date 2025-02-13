@@ -52,12 +52,12 @@ contract CSMM is BaseHook {
     }
 
     // Disable adding liquidity through the PM
-    function _beforeAddLiquidity(
+    function beforeAddLiquidity(
         address,
         PoolKey calldata,
         IPoolManager.ModifyLiquidityParams calldata,
         bytes calldata
-    ) internal pure override returns (bytes4) {
+    ) external pure override returns (bytes4) {
         revert AddLiquidityThroughHook();
     }
 
@@ -74,12 +74,12 @@ contract CSMM is BaseHook {
         );
     }
 
-    function _beforeSwap(
+    function beforeSwap(
         address,
         PoolKey calldata key,
         IPoolManager.SwapParams calldata params,
         bytes calldata
-    ) internal override returns (bytes4, BeforeSwapDelta, uint24) {
+    ) external override returns (bytes4, BeforeSwapDelta, uint24) {
         uint256 amountInOutPositive = params.amountSpecified > 0
             ? uint256(params.amountSpecified)
             : uint256(-params.amountSpecified);
@@ -123,7 +123,7 @@ contract CSMM is BaseHook {
 
     function _unlockCallback(
         bytes calldata data
-    ) internal returns (bytes memory) {
+    ) internal override returns (bytes memory) {
         CallbackData memory callbackData = abi.decode(data, (CallbackData));
 
         // Create a debit of `amountEach` of each currency with the Pool Manager
